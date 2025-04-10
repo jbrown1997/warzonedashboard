@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Call of Duty Warzone - Ultimate GOAT Dashboard</title>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  <style>
+    /* ---------------------------
+       Global Styles & Theme
+    --------------------------- */
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #0a0a0a;
+      font-family: Arial, sans-serif;
+      color: #e0e0e0;
+    }
+    header {
+      background: #111;
+      padding: 20px;
+      text-align: center;
+      border-bottom: 2px solid #222;
+    }
+    header h1 {
+      margin: 0;
+      color: #f0c911; /* Gold */
+      font-size: 28px;
+      letter-spacing: 1px;
+    }
+    nav {
+      background: #1a1a1a;
+      display: flex;
+      justify-content: center;
+      border-bottom: 2px solid #222;
+    }
+    nav button {
+      background: gold;
+      color: #000;
+      border: none;
+      padding: 12px 20px;
+      margin: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      border-radius: 4px;
+      transition: 0.3s;
+    }
+    nav button:hover {
+      background: #ffea70;
+    }
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .section {
+      display: none;
+    }
+
+    /* ---------------------------
+       Leaderboard Section
+    --------------------------- */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #444;
+      padding: 10px;
+      text-align: center;
+      vertical-align: middle;
+    }
+    th {
+      background-color: #111;
+      font-weight: 600;
+    }
+    td input.stat-input {
+      background-color: #fff;
+      color: #000;
+      border: 1px solid #444;
+      text-align: center;
+      border-radius: 3px;
+      padding: 5px;
+    }
+    /* For time played inputs */
+    td input.time-days,
+    td input.time-hours,
+    td input.time-minutes {
+      width: 30%;
+      margin-right: 2%;
+    }
+    .button-container {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .save-all-btn {
+      background: #28a745;
+      border: none;
+      color: #fff;
+      padding: 8px 20px;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .save-all-btn:hover {
+      background: #37d057;
+    }
+    .clear-all-btn {
+      background: #dc3545;
+      border: none;
+      color: #fff;
+      padding: 8px 20px;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .clear-all-btn:hover {
+      background: #e4606d;
+    }
+    .undo-btn {
+      background: #007bff;
+      border: none;
+      color: #fff;
+      padding: 8px 20px;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .undo-btn:hover {
+      background: #008cff;
+    }
+
+    /* ---------------------------
+       Add Player Section
+    --------------------------- */
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #444;
+      border-radius: 4px;
+      background: #222;
+      color: #fff;
+      box-sizing: border-box;
+    }
+    .green-btn {
+      background: #28a745;
+      color: #fff;
+      border: none;
+      padding: 8px 20px;
+      margin-top: 10px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: 0.3s;
+    }
+    .green-btn:hover {
+      background: #37d057;
+    }
+    .edit-btn {
+      background: #d9534f;
+      border: none;
+      color: #fff;
+      padding: 5px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-left: 10px;
+      transition: 0.3s;
+    }
+    .edit-btn:hover {
+      background: #ec7063;
+    }
+    .remove-btn {
+      background: orange;
+      border: none;
+      color: #fff;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-left: 10px;
+    }
+    .remove-btn:hover {
+      background: #ffa833;
+    }
+
+    /* ---------------------------
+       Dashboard Section
+    --------------------------- */
+    .chart-container {
+      background: #1a1a1a;
+      padding: 15px;
+      margin-bottom: 30px;
+      border-radius: 6px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+    .chart-container h3 {
+      margin: 0;
+      color: #e0e0e0;
+    }
+    #goat-chart {
+      border: 2px solid #f0c911;
+      border-radius: 6px;
+    }
+    .chart-container canvas {
+      width: 100% !important;
+      max-height: 300px;
+    }
+
+    /* ---------------------------
+       Exodia Section
+    --------------------------- */
+    #exodia-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .exodia-row {
+      display: flex;
+      gap: 10px;
+    }
+    .exodia-cell {
+      flex: 1;
+      background: #000;
+      border: 1px solid #444;
+      border-radius: 4px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100px;
+    }
+    .exodia-text h4 {
+      margin: 5px 0;
+      color: #f0c911;
+    }
+    .exodia-text p {
+      margin: 2px 0;
+      font-size: 14px;
+      color: #e0e0e0;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Call of Duty Warzone - Ultimate GOAT Dashboard</h1>
+</header>
+
+<nav>
+  <button onclick="showSection('leaderboard')">Leaderboard</button>
+  <button onclick="showSection('add-player')">Add Player</button>
+  <button onclick="showSection('dashboard')">Dashboard</button>
+  <button onclick="showSection('exodia')">Exodia</button>
+</nav>
+
+<div class="container">
+  <!-- LEADERBOARD SECTION -->
+  <div id="leaderboard" class="section">
+    <h2>Leaderboard &amp; Stats Editor</h2>
+    <!-- Removed informational text -->
+    <table id="leaderboard-table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Player</th>
+          <th>Wins</th>
+          <th>Time Played<br>(days / hrs / mins)</th>
+          <th>KD Ratio</th>
+          <th>Score/Min</th>
+          <th>Gulag W/L</th>
+          <th>Top 5s</th>
+          <th>GOAT Score</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Dynamically generated rows -->
+      </tbody>
+    </table>
+    <div class="button-container">
+      <button class="save-all-btn" onclick="saveAll()">Save All</button>
+      <button class="clear-all-btn" onclick="clearAllData()">Clear All</button>
+      <button class="undo-btn" onclick="undoClear()">Undo</button>
+    </div>
+  </div>
+
+  <!-- ADD PLAYER SECTION -->
+  <div id="add-player" class="section">
+    <h2>Add Player</h2>
+    <form id="add-player-form">
+      <div class="form-group">
+        <label for="player-name">Player Name:</label>
+        <input type="text" id="player-name" required>
+      </div>
+      <input type="submit" class="green-btn" value="Add Player">
+    </form>
+    <hr>
+    <h3>Current Players (Name Editor)</h3>
+    <div id="players-list">
+      <!-- List of players with editable names, Update & Remove buttons -->
+    </div>
+  </div>
+
+  <!-- DASHBOARD SECTION -->
+  <div id="dashboard" class="section">
+    <h2 style="color:#f0c911;">GOAT Dashboard</h2>
+    <!-- Removed informational text -->
+    <div class="chart-container">
+      <h3>GOAT Score</h3>
+      <canvas id="goat-chart" height="80"></canvas>
+    </div>
+    <div class="chart-container">
+      <h3>Most Wins Per Day</h3>
+      <canvas id="winsday-chart" height="60"></canvas>
+    </div>
+    <div class="chart-container">
+      <h3>KD Ratio</h3>
+      <canvas id="kd-chart" height="60"></canvas>
+    </div>
+    <div class="chart-container">
+      <h3>Score Per Minute</h3>
+      <canvas id="spm-chart" height="60"></canvas>
+    </div>
+    <div class="chart-container">
+      <h3>Gulag W/L Ratio</h3>
+      <canvas id="gulag-chart" height="60"></canvas>
+    </div>
+    <div class="chart-container">
+      <h3>Most Top 5s Per Day</h3>
+      <canvas id="top5-chart" height="60"></canvas>
+    </div>
+  </div>
+
+  <!-- EXODIA SECTION -->
+  <div id="exodia" class="section">
+    <h2>Exodia</h2>
+    <p>This grid displays various categories based on leaderboard data.</p>
+    <div id="exodia-grid">
+      <!-- Top Row -->
+      <div class="exodia-row">
+        <div class="exodia-cell" id="exodia-top-left"></div>
+        <div class="exodia-cell" id="exodia-top-center"></div>
+        <div class="exodia-cell" id="exodia-top-right"></div>
+      </div>
+      <!-- Second Row -->
+      <div class="exodia-row">
+        <div class="exodia-cell" id="exodia-second-left"></div>
+        <div class="exodia-cell" id="exodia-second-left-center"></div>
+        <div class="exodia-cell" id="exodia-second-center"></div>
+        <div class="exodia-cell" id="exodia-second-right-center"></div>
+        <div class="exodia-cell" id="exodia-second-right"></div>
+      </div>
+      <!-- Bottom Row -->
+      <div class="exodia-row">
+        <div class="exodia-cell" id="exodia-bottom-far-left"></div>
+        <div class="exodia-cell" id="exodia-bottom-left-center"></div>
+        <div class="exodia-cell" id="exodia-bottom-center"></div>
+        <div class="exodia-cell" id="exodia-bottom-right-center"></div>
+        <div class="exodia-cell" id="exodia-bottom-far-right"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+console.log("Script loaded.");
+
+function convertDaysToDHM(totalDays) {
+  let days = Math.floor(totalDays);
+  let remainder = totalDays - days;
+  let totalMinutes = Math.round(remainder * 24 * 60);
+  let hours = Math.floor(totalMinutes / 60);
+  let minutes = totalMinutes % 60;
+  return { days, hours, minutes };
+}
+
+/* Global Data */
+let players = [
+  { name: "Sumner",  wins: 25, timePlayed: 10, kdRatio: 1.2, scorePerMin: 350, gulagRatio: 0.8, top5s: 50 },
+  { name: "Browny",  wins: 20, timePlayed: 20, kdRatio: 1.7, scorePerMin: 400, gulagRatio: 0.9, top5s: 100 },
+  { name: "George",  wins: 24, timePlayed: 50, kdRatio: 1.5, scorePerMin: 500, gulagRatio: 0.8, top5s: 120 },
+  { name: "Robbie",  wins: 18, timePlayed: 12, kdRatio: 1.4, scorePerMin: 320, gulagRatio: 0.7, top5s: 40 },
+  { name: "Kon",     wins: 3,  timePlayed: 25, kdRatio: 1.0, scorePerMin: 250, gulagRatio: 0.5, top5s: 20 },
+  { name: "Mule",    wins: 16, timePlayed: 20, kdRatio: 0.9, scorePerMin: 200, gulagRatio: 0.4, top5s: 35 },
+];
+
+const WINS_PER_DAY_WEIGHT = 0.30;
+const KD_RATIO_WEIGHT = 0.25;
+const SCORE_PER_MIN_WEIGHT = 0.25;
+const GULAG_RATIO_WEIGHT = 0.10;
+const TOP5_PER_DAY_WEIGHT = 0.10;
+
+let lastPlayersBackup = null;
+
+/* Section Display */
+function showSection(id) {
+  console.log("Showing section:", id);
+  document.querySelectorAll('.section').forEach(sec => sec.style.display = 'none');
+  document.getElementById(id).style.display = 'block';
+  if (id === 'leaderboard') renderLeaderboard();
+  if (id === 'add-player') renderPlayersList();
+  if (id === 'dashboard') updateDashboard();
+  if (id === 'exodia') updateExodia();
+}
+
+window.onload = function() {
+  console.log("Window loaded.");
+  showSection('leaderboard');
+};
+
+/* Leaderboard Functions */
+function computeGoatScore(p) {
+  let wpd = (p.timePlayed > 0) ? (p.wins / p.timePlayed) : 0;
+  let t5d = (p.timePlayed > 0) ? (p.top5s / p.timePlayed) : 0;
+  return (wpd * WINS_PER_DAY_WEIGHT) +
+         (p.kdRatio * KD_RATIO_WEIGHT) +
+         (p.scorePerMin * SCORE_PER_MIN_WEIGHT) +
+         (p.gulagRatio * GULAG_RATIO_WEIGHT) +
+         (t5d * TOP5_PER_DAY_WEIGHT);
+}
+
+function renderLeaderboard() {
+  console.log("Rendering Leaderboard...");
+  let tbody = document.querySelector("#leaderboard-table tbody");
+  tbody.innerHTML = "";
+  
+  players.forEach(p => p.goatScore = computeGoatScore(p));
+  players.sort((a, b) => b.goatScore - a.goatScore);
+  
+  players.forEach((player, index) => {
+    let tr = document.createElement('tr');
+    // Rank
+    let rankTd = document.createElement('td');
+    rankTd.textContent = "#" + (index + 1);
+    tr.appendChild(rankTd);
+    // Player Name with Icons
+    let nameTd = document.createElement('td');
+    let icon = "";
+    if (index === 0) icon = "🐐 ";
+    else if (index === 1) icon = "🥈 ";
+    else if (index === 2) icon = "🥉 ";
+    nameTd.textContent = icon + player.name;
+    tr.appendChild(nameTd);
+    // Wins
+    let winsTd = document.createElement('td');
+    let winsInput = document.createElement('input');
+    winsInput.className = "stat-input";
+    winsInput.type = "number";
+    winsInput.value = player.wins;
+    winsTd.appendChild(winsInput);
+    tr.appendChild(winsTd);
+    // Time Played (Days / Hours / Minutes)
+    let timeTd = document.createElement('td');
+    let dhm = convertDaysToDHM(player.timePlayed);
+    let daysInput = document.createElement('input');
+    daysInput.className = "stat-input time-days";
+    daysInput.type = "number";
+    daysInput.value = dhm.days;
+    let hoursInput = document.createElement('input');
+    hoursInput.className = "stat-input time-hours";
+    hoursInput.type = "number";
+    hoursInput.value = dhm.hours;
+    let minutesInput = document.createElement('input');
+    minutesInput.className = "stat-input time-minutes";
+    minutesInput.type = "number";
+    minutesInput.value = dhm.minutes;
+    timeTd.appendChild(daysInput);
+    timeTd.appendChild(hoursInput);
+    timeTd.appendChild(minutesInput);
+    tr.appendChild(timeTd);
+    // KD Ratio
+    let kdTd = document.createElement('td');
+    let kdInput = document.createElement('input');
+    kdInput.className = "stat-input";
+    kdInput.type = "number";
+    kdInput.step = "0.01";
+    kdInput.value = player.kdRatio;
+    kdTd.appendChild(kdInput);
+    tr.appendChild(kdTd);
+    // Score Per Minute
+    let spmTd = document.createElement('td');
+    let spmInput = document.createElement('input');
+    spmInput.className = "stat-input";
+    spmInput.type = "number";
+    spmInput.step = "0.01";
+    spmInput.value = player.scorePerMin;
+    spmTd.appendChild(spmInput);
+    tr.appendChild(spmTd);
+    // Gulag W/L Ratio
+    let gulagTd = document.createElement('td');
+    let gulagInput = document.createElement('input');
+    gulagInput.className = "stat-input";
+    gulagInput.type = "number";
+    gulagInput.step = "0.01";
+    gulagInput.value = player.gulagRatio;
+    gulagTd.appendChild(gulagInput);
+    tr.appendChild(gulagTd);
+    // Top 5s
+    let top5Td = document.createElement('td');
+    let top5Input = document.createElement('input');
+    top5Input.className = "stat-input";
+    top5Input.type = "number";
+    top5Input.step = "1";
+    top5Input.value = player.top5s;
+    top5Td.appendChild(top5Input);
+    tr.appendChild(top5Td);
+    // GOAT Score (read-only)
+    let goatTd = document.createElement('td');
+    goatTd.textContent = player.goatScore.toFixed(2);
+    tr.appendChild(goatTd);
+    tbody.appendChild(tr);
+  });
+}
+
+function saveAll() {
+  console.log("Saving all data...");
+  let tbody = document.querySelector("#leaderboard-table tbody");
+  let rows = tbody.querySelectorAll("tr");
+  rows.forEach((row, idx) => {
+    let player = players[idx];
+    let winsInput = row.cells[2].querySelector("input");
+    let daysInput = row.cells[3].querySelector(".time-days");
+    let hoursInput = row.cells[3].querySelector(".time-hours");
+    let minutesInput = row.cells[3].querySelector(".time-minutes");
+    let kdInput = row.cells[4].querySelector("input");
+    let spmInput = row.cells[5].querySelector("input");
+    let gulagInput = row.cells[6].querySelector("input");
+    let top5Input = row.cells[7].querySelector("input");
+    
+    player.wins = parseFloat(winsInput.value) || 0;
+    let daysVal = parseFloat(daysInput.value) || 0;
+    let hoursVal = parseFloat(hoursInput.value) || 0;
+    let minutesVal = parseFloat(minutesInput.value) || 0;
+    player.timePlayed = daysVal + (hoursVal / 24) + (minutesVal / 1440);
+    player.kdRatio = parseFloat(kdInput.value) || 0;
+    player.scorePerMin = parseFloat(spmInput.value) || 0;
+    player.gulagRatio = parseFloat(gulagInput.value) || 0;
+    player.top5s = parseFloat(top5Input.value) || 0;
+  });
+  renderLeaderboard();
+  if(document.getElementById('dashboard').style.display === 'block'){
+    updateDashboard();
+  }
+  alert("All player data saved!");
+}
+
+document.getElementById('add-player-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  let nameInput = document.getElementById('player-name');
+  let nameVal = nameInput.value.trim();
+  if (!nameVal) { alert("Please enter a name"); return; }
+  players.push({ name: nameVal, wins: 0, timePlayed: 0, kdRatio: 0, scorePerMin: 0, gulagRatio: 0, top5s: 0 });
+  nameInput.value = "";
+  renderPlayersList();
+  alert("Player added!");
+});
+
+function renderPlayersList() {
+  console.log("Rendering players list...");
+  let container = document.getElementById('players-list');
+  container.innerHTML = "";
+  if (players.length === 0) {
+    container.textContent = "No players found.";
+    return;
+  }
+  players.forEach((player, index) => {
+    let div = document.createElement('div');
+    div.style.marginBottom = "10px";
+    
+    let input = document.createElement('input');
+    input.type = "text";
+    input.value = player.name;
+    input.style.width = "200px";
+    input.style.marginRight = "10px";
+    
+    let updateBtn = document.createElement('button');
+    updateBtn.className = "edit-btn";
+    updateBtn.textContent = "Update";
+    updateBtn.onclick = () => {
+      let newName = input.value.trim();
+      if (!newName) { alert("Name cannot be empty."); return; }
+      player.name = newName;
+      renderPlayersList();
+      alert("Name updated!");
+    };
+    
+    let removeBtn = document.createElement('button');
+    removeBtn.className = "remove-btn";
+    removeBtn.textContent = "Remove";
+    removeBtn.onclick = () => {
+      players.splice(index, 1);
+      renderPlayersList();
+      alert("Player removed!");
+    };
+    
+    div.appendChild(input);
+    div.appendChild(updateBtn);
+    div.appendChild(removeBtn);
+    container.appendChild(div);
+  });
+}
+
+function clearAllData() {
+  console.log("Clearing all numerical data...");
+  if (players.length === 0) {
+    alert("No data to clear.");
+    return;
+  }
+  lastPlayersBackup = JSON.parse(JSON.stringify(players));
+  players.forEach(player => {
+    player.wins = 0;
+    player.timePlayed = 0;
+    player.kdRatio = 0;
+    player.scorePerMin = 0;
+    player.gulagRatio = 0;
+    player.top5s = 0;
+  });
+  renderLeaderboard();
+  renderPlayersList();
+  alert("All numerical player data cleared!");
+}
+
+function undoClear() {
+  console.log("Undoing clear...");
+  if (lastPlayersBackup) {
+    players = lastPlayersBackup;
+    lastPlayersBackup = null;
+    renderLeaderboard();
+    renderPlayersList();
+    alert("Player data restored!");
+  } else {
+    alert("Nothing to undo.");
+  }
+}
+
+/* ===================== Dashboard Functions ===================== */
+let goatChart, winsChart, kdChart, spmChart, gulagChart, top5Chart;
+
+function updateDashboard() {
+  console.log("Updating Dashboard...");
+  players.forEach(p => p.goatScore = computeGoatScore(p));
+  
+  // GOAT Score: sorted descending by goatScore
+  let goatSorted = players.slice().sort((a, b) => b.goatScore - a.goatScore);
+  let goatLabels = goatSorted.map(p => p.name);
+  let goatData = goatSorted.map(p => p.goatScore);
+  
+  // Wins/Day: sorted descending by wins per day
+  let winsSorted = players.slice().sort((a, b) => {
+    let aVal = (a.timePlayed > 0) ? (a.wins / a.timePlayed) : 0;
+    let bVal = (b.timePlayed > 0) ? (b.wins / b.timePlayed) : 0;
+    return bVal - aVal;
+  });
+  let winsLabels = winsSorted.map(p => p.name);
+  let wpdData = winsSorted.map(p => (p.timePlayed > 0) ? (p.wins / p.timePlayed) : 0);
+  
+  // KD Ratio: sorted descending
+  let kdSorted = players.slice().sort((a, b) => b.kdRatio - a.kdRatio);
+  let kdLabels = kdSorted.map(p => p.name);
+  let kdData = kdSorted.map(p => p.kdRatio);
+  
+  // Score/Min: sorted descending
+  let spmSorted = players.slice().sort((a, b) => b.scorePerMin - a.scorePerMin);
+  let spmLabels = spmSorted.map(p => p.name);
+  let spmData = spmSorted.map(p => p.scorePerMin);
+  
+  // Gulag Ratio: sorted descending
+  let gulagSorted = players.slice().sort((a, b) => b.gulagRatio - a.gulagRatio);
+  let gulagLabels = gulagSorted.map(p => p.name);
+  let gulagData = gulagSorted.map(p => p.gulagRatio);
+  
+  // Top 5s/Day: sorted descending
+  let top5Sorted = players.slice().sort((a, b) => {
+    let aVal = (a.timePlayed > 0) ? (a.top5s / a.timePlayed) : 0;
+    let bVal = (b.timePlayed > 0) ? (b.top5s / b.timePlayed) : 0;
+    return bVal - aVal;
+  });
+  let top5Labels = top5Sorted.map(p => p.name);
+  let top5Data = top5Sorted.map(p => (p.timePlayed > 0) ? (p.top5s / p.timePlayed) : 0);
+  
+  if (goatChart) goatChart.destroy();
+  if (winsChart) winsChart.destroy();
+  if (kdChart) kdChart.destroy();
+  if (spmChart) spmChart.destroy();
+  if (gulagChart) gulagChart.destroy();
+  if (top5Chart) top5Chart.destroy();
+  
+  goatChart = new Chart(document.getElementById('goat-chart'), {
+    type: 'bar',
+    data: {
+      labels: goatLabels,
+      datasets: [{
+        label: 'GOAT Score',
+        data: goatData,
+        backgroundColor: '#f0c911'
+      }]
+    },
+    options: {
+      indexAxis: 'x',
+      scales: { y: { beginAtZero: true, ticks: { autoSkip: true, maxTicksLimit: 10 } } },
+      plugins: { legend: { display: false } },
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false
+    }
+  });
+  
+  winsChart = new Chart(document.getElementById('winsday-chart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: winsLabels,
+      datasets: [{
+        label: 'Wins/Day',
+        data: wpdData,
+        backgroundColor: 'rgba(30, 144, 255, 0.7)'
+      }]
+    },
+    options: {
+      scales: { y: { beginAtZero: true, ticks: { autoSkip: true, maxTicksLimit: 10 } } }
+    }
+  });
+  
+  kdChart = new Chart(document.getElementById('kd-chart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: kdLabels,
+      datasets: [{
+        label: 'KD Ratio',
+        data: kdData,
+        backgroundColor: 'rgba(255, 99, 132, 0.7)'
+      }]
+    },
+    options: {
+      scales: { y: { beginAtZero: true, ticks: { autoSkip: true, maxTicksLimit: 10 } } }
+    }
+  });
+  
+  spmChart = new Chart(document.getElementById('spm-chart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: spmLabels,
+      datasets: [{
+        label: 'Score/Min',
+        data: spmData,
+        backgroundColor: 'rgba(75, 192, 192, 0.7)'
+      }]
+    },
+    options: {
+      scales: { y: { beginAtZero: true, ticks: { autoSkip: true, maxTicksLimit: 10 } } }
+    }
+  });
+  
+  gulagChart = new Chart(document.getElementById('gulag-chart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: gulagLabels,
+      datasets: [{
+        label: 'Gulag Ratio',
+        data: gulagData,
+        backgroundColor: 'rgba(255, 206, 86, 0.7)'
+      }]
+    },
+    options: {
+      scales: { y: { beginAtZero: true, ticks: { autoSkip: true, maxTicksLimit: 10 } } }
+    }
+  });
+  
+  top5Chart = new Chart(document.getElementById('top5-chart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: top5Labels,
+      datasets: [{
+        label: 'Top5s/Day',
+        data: top5Data,
+        backgroundColor: 'rgba(153, 102, 255, 0.7)'
+      }]
+    },
+    options: {
+      scales: { y: { beginAtZero: true, ticks: { autoSkip: true, maxTicksLimit: 10 } } }
+    }
+  });
+}
+
+/* ===================== Exodia Functions ===================== */
+function updateExodia() {
+  console.log("updateExodia called.");
+  players.forEach(p => p.goatScore = computeGoatScore(p));
+  // Overall ranking sorted by GOAT score descending
+  let overall = players.slice().sort((a, b) => b.goatScore - a.goatScore);
+  setExodiaCell('exodia-top-center', "Certified GOAT", "The Best Player", overall[0]);
+  setExodiaCell('exodia-top-left', "GOAT's Right Hand Man", "2nd Best Player", overall[1]);
+  setExodiaCell('exodia-top-right', "GOAT's Offsider", "3rd Best Player", overall[2]);
+  
+  // Second row (Weighted Metrics)
+  let winsPerDaySorted = players.slice().sort((a, b) => {
+    let aVal = (a.timePlayed > 0) ? (a.wins / a.timePlayed) : 0;
+    let bVal = (b.timePlayed > 0) ? (b.wins / b.timePlayed) : 0;
+    return bVal - aVal;
+  });
+  setExodiaCell('exodia-second-left', "King of the Zone", "Most Dubs Per Day", winsPerDaySorted[0],
+    (winsPerDaySorted[0].timePlayed > 0) ? (winsPerDaySorted[0].wins / winsPerDaySorted[0].timePlayed).toFixed(2) : "N/A", "30%");
+  
+  let kdSorted = players.slice().sort((a, b) => b.kdRatio - a.kdRatio);
+  setExodiaCell('exodia-second-left-center', "The Crackhead", "Highest KD Ratio", kdSorted[0], kdSorted[0].kdRatio.toFixed(2), "25%");
+  
+  let spmSorted = players.slice().sort((a, b) => b.scorePerMin - a.scorePerMin);
+  setExodiaCell('exodia-second-center', "The Chef", "Highest Score Per Minute", spmSorted[0], spmSorted[0].scorePerMin.toFixed(2), "25%");
+  
+  let gulagSorted = players.slice().sort((a, b) => b.gulagRatio - a.gulagRatio);
+  setExodiaCell('exodia-second-right-center', "Comeback King", "Highest Gulag W/L Ratio", gulagSorted[0], gulagSorted[0].gulagRatio.toFixed(2), "10%");
+  
+  let top5Sorted = players.slice().sort((a, b) => {
+    let aVal = (a.timePlayed > 0) ? (a.top5s / a.timePlayed) : 0;
+    let bVal = (b.timePlayed > 0) ? (b.top5s / b.timePlayed) : 0;
+    return bVal - aVal;
+  });
+  setExodiaCell('exodia-second-right', "End Game Specialist", "Most Top 5's Per Day", top5Sorted[0],
+    (top5Sorted[0].timePlayed > 0) ? (top5Sorted[0].top5s / top5Sorted[0].timePlayed).toFixed(2) : "N/A", "10%");
+  
+  // Bottom row
+  let winsTotalSorted = players.slice().sort((a, b) => b.wins - a.wins);
+  setExodiaCell('exodia-bottom-far-left', "Warzone Champion", "Highest Total Wins", winsTotalSorted[0], winsTotalSorted[0].wins);
+  
+  let overallAsc = players.slice().sort((a, b) => a.goatScore - b.goatScore);
+  setExodiaCell('exodia-bottom-left-center', "Stinking Mutant Crab", "Worst Player", overallAsc[0], overallAsc[0].goatScore.toFixed(2));
+  
+  let timeSorted = players.slice().sort((a, b) => b.timePlayed - a.timePlayed);
+  setExodiaCell('exodia-bottom-center', "Dungeon Dweller", "Most Time Played", timeSorted[0], timeSorted[0].timePlayed.toFixed(2));
+  
+  let gulagAsc = players.slice().sort((a, b) => a.gulagRatio - b.gulagRatio);
+  setExodiaCell('exodia-bottom-right-center', "Melter", "Worst Gulag W/L Ratio", gulagAsc[0], gulagAsc[0].gulagRatio.toFixed(2));
+  
+  let spmAsc = players.slice().sort((a, b) => a.scorePerMin - b.scorePerMin);
+  setExodiaCell('exodia-bottom-far-right', "Most Carried", "Lowest Score Per Min", spmAsc[0], spmAsc[0].scorePerMin.toFixed(2));
+}
+
+function setExodiaCell(cellId, category, subheader, player, metric, weight) {
+  let cell = document.getElementById(cellId);
+  cell.innerHTML = `
+    <div class="exodia-text">
+      <h4>${category}</h4>
+      <p>${subheader}</p>
+      <p>Player: ${player ? player.name : "N/A"}</p>
+      <p>Value: ${metric !== undefined ? metric : "N/A"} ${weight ? "(" + weight + ")" : ""}</p>
+    </div>
+  `;
+}
+
+/* ===================== End Exodia Functions ===================== */
+document.addEventListener("DOMContentLoaded", () => {
+  showSection('leaderboard');
+});
+</script>
+
+</body>
+</html>
